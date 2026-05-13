@@ -107,9 +107,25 @@ module ActionMailer
 
       # Taken from Rails' word_wrap helper (http://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-word_wrap)
       def self.custom_word_wrap(txt, line_length)
-        txt.split("\n").collect do |line|
-          line.length > line_length ? line.gsub(/(.{1,#{line_length}})(\s+|$)/, "\\1\n").strip : line
-        end * "\n"
+        txt.split("\n").map { |line| wrap_long_line(line, line_length) }.join("\n")
+      end
+
+      def self.wrap_long_line(line, line_length)
+        return line if line.length <= line_length
+
+        wrapped = []
+        while line.length > line_length
+          idx = line[0, line_length + 1].rindex(/\s/)
+          if idx && idx.positive?
+            wrapped << line[0, idx]
+            line = line[idx..].lstrip
+          else
+            wrapped << line[0, line_length]
+            line = line[line_length..]
+          end
+        end
+        wrapped << line unless line.empty?
+        wrapped.join("\n")
       end
     end
   end

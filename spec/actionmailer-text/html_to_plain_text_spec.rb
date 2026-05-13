@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'spec_helper'
+require 'benchmark'
 
 describe ActionMailer::Text::HtmlToPlainText do
   it 'converts a fragment' do
@@ -133,6 +134,17 @@ describe ActionMailer::Text::HtmlToPlainText do
     lens = []
     txt.each_line { |l| lens << l.length }
     expect(lens.max).to be <= 20
+  end
+
+  it 'wraps long no-whitespace lines without backtracking' do
+    raw = "<p>#{'a' * 5000}</p>"
+
+    txt = nil
+    elapsed = Benchmark.realtime { txt = subject.convert_to_text(raw, 65) }
+
+    expect(elapsed).to be < 1.0
+    lens = txt.each_line.map(&:length)
+    expect(lens.max).to be <= 66
   end
 
   it 'converts links' do
