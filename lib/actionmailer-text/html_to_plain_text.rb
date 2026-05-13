@@ -120,8 +120,14 @@ module ActionMailer
             wrapped << line[0, idx]
             line = line[idx..].lstrip
           else
-            wrapped << line[0, line_length]
-            line = line[line_length..]
+            next_ws = line.index(/\s/, line_length)
+            if next_ws
+              wrapped << line[0, next_ws]
+              line = line[next_ws..].lstrip
+            else
+              wrapped << line
+              line = ''
+            end
           end
         end
         wrapped << line unless line.empty?

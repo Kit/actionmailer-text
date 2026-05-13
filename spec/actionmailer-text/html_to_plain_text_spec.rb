@@ -136,15 +136,24 @@ describe ActionMailer::Text::HtmlToPlainText do
     expect(lens.max).to be <= 20
   end
 
-  it 'wraps long no-whitespace lines without backtracking' do
-    raw = "<p>#{'a' * 5000}</p>"
+  it 'handles long no-whitespace lines without backtracking and keeps the token intact' do
+    long_token = 'a' * 5000
+    raw = "<p>#{long_token}</p>"
 
     txt = nil
     elapsed = Benchmark.realtime { txt = subject.convert_to_text(raw, 65) }
 
     expect(elapsed).to be < 1.0
-    lens = txt.each_line.map(&:length)
-    expect(lens.max).to be <= 66
+    expect(txt).to eq(long_token)
+  end
+
+  it 'preserves a long URL surrounded by short words when wrapping' do
+    long_url = "http://example.com/#{'a' * 300}"
+    raw = "<p>before #{long_url} after</p>"
+
+    txt = subject.convert_to_text(raw, 20)
+
+    expect(txt.lines.map(&:chomp)).to include(long_url)
   end
 
   it 'converts links' do
