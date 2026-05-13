@@ -131,7 +131,7 @@ module ActionMailer
           end
         end
         wrapped << line unless line.empty?
-        wrapped.join("\n")
+        wrapped.join("\n").strip
       end
     end
   end
